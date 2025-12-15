@@ -333,8 +333,6 @@ class SASearch(Search):
                 break
                 
         return times, best_valids, best_tests
-
-
 class BOSearch(Search):
     """
     基于贝叶斯优化 (Bayesian Optimization) 的搜索
@@ -541,4 +539,3 @@ class BOSearch(Search):
                 break
                 
         return times, best_valids, best_tests
-    
