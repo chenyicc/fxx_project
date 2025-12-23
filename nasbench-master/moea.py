@@ -10,7 +10,7 @@ class MOEASearch(evolutionSearch):
 
     必选目标: maximize validation accuracy
     可选目标: minimize params, minimize training_time
-    统一最小化形式: (-acc, params?, time?)
+    统一最小化形式: (-acc, params, time)
     """
 
     def __init__(self,
@@ -23,22 +23,21 @@ class MOEASearch(evolutionSearch):
                  max_time_budget=5e6,
                  use_params=False,
                  use_time=False,
-                 archive_max=300,
+                 archive_max=500,
                  archive_eps=None,
                  field_map=None,
                  seed=None):
 
-        # ✅ 正确：初始化 evolutionSearch（从而间接初始化 Search）
+        # ：初始化 evolutionSearch（从而间接初始化 Search）
         super().__init__(
             nasbench=nasbench,
             population_size=pop_size,
-            tournament_size=2,          # MOEA 不用它，但必须给
+            tournament_size=2,         
             crossover_rate=crossover_rate,
             mutation_rate=mutation_rate,
             max_time_budget=max_time_budget
         )
 
-        # ===== MOEA 自己的参数 =====
         self.pop_size = int(pop_size)
         self.offspring_size = int(offspring_size) if offspring_size else int(pop_size)
         self.crossover = bool(crossover)
@@ -56,9 +55,7 @@ class MOEASearch(evolutionSearch):
             random.seed(seed)
             np.random.seed(seed)
 
-    # ---------------------------
     # Utils: NASBench fields & cache
-    # ---------------------------
     @staticmethod
     def _get_from_data(data, candidates, default=None):
         for k in candidates:
@@ -121,9 +118,7 @@ class MOEASearch(evolutionSearch):
         self.cache[key] = copy.deepcopy(ind)
         return ind
 
-    # ---------------------------
     # NSGA-II core
-    # ---------------------------
     @staticmethod
     def dominates(a, b):
         fa, fb = a["obj"], b["obj"]  # minimization
@@ -205,9 +200,7 @@ class MOEASearch(evolutionSearch):
         kb = (b["rank"], -b["crowd"])
         return a if ka < kb else b
 
-    # ---------------------------
     # External Archive (Pareto + epsilon grid pruning)
-    # ---------------------------
     def nondominated_filter(self, pop):
         nd = []
         for p in pop:
@@ -246,9 +239,7 @@ class MOEASearch(evolutionSearch):
         pruned = self.environmental_select(pruned, min(len(pruned), self.archive_max))
         return pruned
 
-    # ---------------------------
     # Main loop
-    # ---------------------------
     def run(self):
         nb = self.nasbench
         nb.reset_budget_counters()
@@ -336,9 +327,7 @@ class MOEASearch(evolutionSearch):
         archive = self.nondominated_filter(archive)
         return history, archive, population
 
-    # ---------------------------
     # Plot Pareto front / projections
-    # ---------------------------
     @staticmethod
     def plot_pareto(front, use_params=False, use_time=False, title="Pareto Front", show_knee=True):
         if not front:
